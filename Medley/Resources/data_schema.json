@@ -1,0 +1,144 @@
+{
+  "version": "1.0",
+  "intro": { "firstQuestionId": "hair_loss_location" },
+  "questions": [
+    {
+      "id": "hair_loss_location",
+      "prompt": "Where are you noticing changes to your hair?",
+      "type": "single_choice",
+      "options": [
+        { "id": "hairline", "label": "Along the hairline" },
+        { "id": "crown", "label": "At the crown" },
+        { "id": "diffuse", "label": "All over" }
+      ],
+      "predefinedResponses": ["Along the hairline", "At the crown", "All over"],
+      "key": "hair.changes.location",
+      "next": { "default": "hair_loss_amount" }
+    },
+    {
+      "id": "hair_loss_amount",
+      "prompt": "How much hair have you lost?",
+      "type": "single_choice",
+      "options": [
+        { "id": "a_lot", "label": "A lot" },
+        { "id": "some", "label": "Some" },
+        { "id": "a_little", "label": "A little" },
+        { "id": "unsure", "label": "Not sure" }
+      ],
+      "predefinedResponses": ["A lot", "Some", "A little", "Not sure"],
+      "key": "hair.changes.amount",
+      "next": { "default": "noticed_changes_timing" }
+    },
+    {
+      "id": "noticed_changes_timing",
+      "prompt": "When did you start noticing changes to your hair?",
+      "type": "single_choice",
+      "options": [
+        { "id": "over_1y", "label": "Over a year ago" },
+        { "id": "past_1y", "label": "In the past year" },
+        { "id": "past_few_months", "label": "In the past few months" },
+        { "id": "unsure", "label": "Not sure" }
+      ],
+      "predefinedResponses": ["Over a year ago", "In the past year", "In the past few months", "Not sure"],
+      "key": "hair.changes.duration",
+      "next": { "default": "family_history" }
+    },
+    {
+      "id": "family_history",
+      "prompt": "Does hair loss run in your family?",
+      "type": "single_choice",
+      "options": [
+        { "id": "yes", "label": "Yes" },
+        { "id": "no", "label": "No" },
+        { "id": "unsure", "label": "Not sure" }
+      ],
+      "predefinedResponses": ["Yes", "No", "Not sure"],
+      "key": "lifestyle.family_history",
+      "next": { "default": "stress_frequency" }
+    },
+    {
+      "id": "stress_frequency",
+      "prompt": "How often do you tend to experience stress?",
+      "type": "single_choice",
+      "options": [
+        { "id": "all_time", "label": "All the time" },
+        { "id": "sometimes", "label": "Sometimes" },
+        { "id": "rarely", "label": "Rarely" },
+        { "id": "unsure", "label": "Not sure" }
+      ],
+      "predefinedResponses": ["All the time", "Sometimes", "Rarely", "Not sure"],
+      "key": "lifestyle.stress",
+      "next": { "default": "hair_care_time" }
+    },
+    {
+      "id": "hair_care_time",
+      "prompt": "How much time do you spend on your hair every day?",
+      "type": "single_choice",
+      "options": [
+        { "id": "lt_10", "label": "Less than 10 minutes" },
+        { "id": "10_30", "label": "10 to 30 minutes" },
+        { "id": "gt_30", "label": "More than 30 minutes" }
+      ],
+      "predefinedResponses": ["Less than 10 minutes", "10 to 30 minutes", "More than 30 minutes"],
+      "key": "routine.care_time",
+      "next": { "default": "hair_type" }
+    },
+    {
+      "id": "hair_type",
+      "prompt": "What's your hair type?",
+      "type": "single_choice",
+      "options": [
+        { "id": "straight_wavy", "label": "Straight or wavy" },
+        { "id": "curly_coily", "label": "Curly or coily" },
+        { "id": "textured_processed", "label": "Textured or processed" },
+        { "id": "no_hair", "label": "I don't have hair" }
+      ],
+      "predefinedResponses": ["Straight or wavy", "Curly or coily", "Textured or processed", "I don't have hair"],
+      "key": "hair.type",
+      "next": { "default": "hair_length" }
+    },
+    {
+      "id": "hair_length",
+      "prompt": "How long is your hair?",
+      "type": "single_choice",
+      "options": [
+        { "id": "bald_buzzed", "label": "Buzzed, shaved, or bald" },
+        { "id": "short", "label": "Short" },
+        { "id": "medium", "label": "Medium" },
+        { "id": "long", "label": "Long" }
+      ],
+      "predefinedResponses": ["Buzzed, shaved, or bald", "Short", "Medium", "Long"],
+      "key": "hair.length",
+      "next": { "default": "hair_loss_pattern" }
+    },
+    {
+      "id": "hair_loss_pattern",
+      "prompt": "Which best represents your hair loss and goals?",
+      "type": "single_choice",
+      "options": [
+        { "id": "hairline", "label": "Receding hairline" },
+        { "id": "crown", "label": "Thinning at the crown" },
+        { "id": "diffuse", "label": "Thinning all over" },
+        { "id": "unsure", "label": "Not sure / none of the above" }
+      ],
+      "predefinedResponses": ["Receding hairline", "Thinning at the crown", "Thinning all over", "Not sure / none of the above"],
+      "key": "hair.pattern",
+      "next": { "default": "treatment_goals" }
+    },
+    {
+      "id": "treatment_goals",
+      "prompt": "With treatment, what results are you hoping for?",
+      "type": "multiple_choice",
+      "options": [
+        { "id": "hairline", "label": "A stronger, defined hairline" },
+        { "id": "thicker", "label": "Visibly thicker, fuller hair" },
+        { "id": "coverage", "label": "More hair coverage" },
+        { "id": "keep", "label": "Keep the hair I still have" },
+        { "id": "all", "label": "All of the above" }
+      ],
+      "predefinedResponses": ["A stronger, defined hairline", "Visibly thicker, fuller hair", "More hair coverage", "Keep the hair I still have", "All of the above"],
+      "key": "goals.treatment",
+      "next": { "default": "__complete__" }
+    }
+  ]
+}
