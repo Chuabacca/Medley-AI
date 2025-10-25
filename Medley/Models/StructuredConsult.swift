@@ -21,7 +21,7 @@ struct StructuredConsult: Codable {
 
 struct ChatMessage: Identifiable, Codable {
     enum Role: String, Codable { case user, model, system }
-    let id = UUID()
+    var id = UUID()
     let role: Role
     let text: String
 }

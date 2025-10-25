@@ -6,6 +6,7 @@ import Observation
 final class ChatViewModel {
     var messages: [ChatMessage] = []
     var predefinedResponses: [String] = []
+    var isComplete = false
 
     private(set) var schema: DataSchema
     private let model: ConversationModel
@@ -13,19 +14,21 @@ final class ChatViewModel {
     private var currentQuestionId: String?
     var data = StructuredConsult()
 
-    init(schema: DataSchema = (try? SchemaLoader.load()) ?? DataSchema(version: "", intro: Intro(firstQuestionId: ""), questions: []),
-         model: ConversationModel? = nil) {
-        self.schema = schema
+    init(schema: DataSchema? = nil, model: ConversationModel? = nil) {
+        // Load schema on main actor
+        let loadedSchema = schema ?? (try? SchemaLoader.load()) ?? DataSchema(version: "", intro: Intro(firstQuestionId: ""), questions: [])
+        self.schema = loadedSchema
         // Use FoundationModels by default
-        self.model = model ?? FoundationModelsConversationModel(schema: schema)
+        self.model = model ?? FoundationModelsConversationModel(schema: loadedSchema)
     }
 
     func start() {
         messages.removeAll()
+        isComplete = false
         currentQuestionId = schema.intro.firstQuestionId
         if let q = currentQuestion { predefinedResponses = q.predefinedResponses ?? [] }
         
-        Task {
+        Task { @MainActor in
             await model.prewarm()
             let opening = await model.openingMessage(schema: schema)
             messages.append(opening)
@@ -40,7 +43,7 @@ final class ChatViewModel {
         messages.append(ChatMessage(role: .user, text: text))
         
         // Generate response asynchronously
-        Task {
+        Task { @MainActor in
             do {
                 let turn = try await model.nextTurn(for: q, userText: text, conversationHistory: messages)
                 if let mapped = turn.mappedAnswer { assign(mapped) }
@@ -61,6 +64,13 @@ final class ChatViewModel {
     }
 
     private func advance(to nextId: String?) {
+        // Check for completion
+        if nextId == "__complete__" {
+            isComplete = true
+            predefinedResponses = []
+            return
+        }
+        
         guard let nextId, let nextQ = schema.byId[nextId] else { return }
         currentQuestionId = nextId
         predefinedResponses = nextQ.predefinedResponses ?? []

@@ -82,8 +82,9 @@ final class FoundationModelsConversationModel: ConversationModel {
         
         // Generate dynamic acknowledgment and next question using the LLM
         let nextId = question.next?.default
-        guard let nextQuestionId = nextId, let nextQuestion = schema.byId[nextQuestionId] else {
-            // No next question - consultation complete
+        
+        // Check if consultation is complete
+        if nextId == "__complete__" || nextId == nil {
             let prompt = Prompt {
                 "The patient has completed the consultation."
                 "Generate a brief, warm closing message thanking them and letting them know you've gathered the information needed."
@@ -97,6 +98,15 @@ final class FoundationModelsConversationModel: ConversationModel {
             
             return ModelTurn(
                 message: ChatMessage(role: .model, text: responseText.trimmingCharacters(in: .whitespacesAndNewlines)),
+                mappedAnswer: mapped,
+                nextQuestionId: nextId
+            )
+        }
+        
+        guard let nextQuestionId = nextId, let nextQuestion = schema.byId[nextQuestionId] else {
+            // Invalid next question ID
+            return ModelTurn(
+                message: ChatMessage(role: .model, text: "Thank you for sharing that information."),
                 mappedAnswer: mapped,
                 nextQuestionId: nil
             )
