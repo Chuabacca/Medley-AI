@@ -12,6 +12,7 @@ struct ChatView: View {
                 responseChipsView
                 bottomControlView
             }
+            .background(Color.backgroundWarm)
             .navigationTitle("Consultation")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -30,9 +31,14 @@ struct ChatView: View {
             LazyVStack(alignment: .leading, spacing: 12) {
                 ForEach(vm.messages) { msg in
                     MessageRow(message: msg)
+                        .id(msg.id)
                 }
-            }.padding(.horizontal)
+            }
+            .padding(.horizontal)
+            .scrollTargetLayout()
         }
+        .scrollPosition(id: .constant(vm.messages.last?.id), anchor: .bottom)
+        .defaultScrollAnchor(.bottom)
     }
     
     private var responseChipsView: some View {
@@ -42,10 +48,13 @@ struct ChatView: View {
                     HStack(spacing: 8) {
                         ForEach(vm.predefinedResponses, id: \.self) { chip in
                             Button(chip) { send(chip) }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(Color(.systemGray6))
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.brandPrimary)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(Color.white)
                                 .clipShape(Capsule())
+                                .shadow(color: Color.cardShadow, radius: 4, x: 0, y: 2)
                         }
                     }.padding(.horizontal)
                 }
@@ -71,7 +80,7 @@ struct ChatView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(Color.black)
+                .background(Color.brandDark)
                 .clipShape(Capsule())
         }
         .padding()
@@ -115,7 +124,7 @@ struct MessageRow: View {
     }
     
     private var backgroundColor: Color {
-        message.role == .user ? Color.black : Color(.systemGray6)
+        message.role == .user ? Color.brandDark : Color.white
     }
     
     private var foregroundColor: Color {
