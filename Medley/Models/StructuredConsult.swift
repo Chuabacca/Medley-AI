@@ -23,7 +23,12 @@ struct ChatMessage: Identifiable, Codable {
     enum Role: String, Codable { case user, model, system }
     var id = UUID()
     let role: Role
-    let text: String
+    var text: String
+    var isStreaming: Bool = false
+    
+    enum CodingKeys: String, CodingKey {
+        case id, role, text
+    }
 }
 
 struct MappedAnswer { let keyPath: String; let valueId: String }

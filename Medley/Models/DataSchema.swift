@@ -18,6 +18,7 @@ struct NextRules: Codable { let `default`: String? }
 
 struct Question: Codable {
     let id: String
+    let info: String?
     let prompt: String
     let type: QuestionType
     let options: [Option]?

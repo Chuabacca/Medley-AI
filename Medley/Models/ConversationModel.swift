@@ -4,11 +4,20 @@ import Foundation
 protocol ConversationModel {
     func prewarm() async -> Void
     func openingMessage(schema: DataSchema) async -> ChatMessage
+    func streamOpeningMessage(schema: DataSchema) async throws -> AsyncStream<StreamingTurn>
     func nextTurn(for question: Question, userText: String?, conversationHistory: [ChatMessage]) async throws -> ModelTurn
+    func streamNextTurn(for question: Question, userText: String?, conversationHistory: [ChatMessage]) async throws -> AsyncStream<StreamingTurn>
 }
 
 struct ModelTurn {
     let message: ChatMessage
+    let mappedAnswer: MappedAnswer?
+    let nextQuestionId: String?
+}
+
+struct StreamingTurn {
+    let partialText: String
+    let isComplete: Bool
     let mappedAnswer: MappedAnswer?
     let nextQuestionId: String?
 }
@@ -63,6 +72,60 @@ final class FoundationModelsConversationModel: ConversationModel {
         } catch {
             // Fallback to static prompt
             return ChatMessage(role: .model, text: firstQuestion.prompt)
+        }
+    }
+    
+    func streamOpeningMessage(schema: DataSchema) async throws -> AsyncStream<StreamingTurn> {
+        let qid = schema.intro.firstQuestionId
+        guard let firstQuestion = schema.byId[qid] else {
+            return AsyncStream { continuation in
+                continuation.yield(StreamingTurn(
+                    partialText: "Let's get started.",
+                    isComplete: true,
+                    mappedAnswer: nil,
+                    nextQuestionId: qid
+                ))
+                continuation.finish()
+            }
+        }
+        
+        return AsyncStream { continuation in
+            Task {
+                let prompt = Prompt {
+                    "Generate a warm opening message for a hair loss consultation."
+                    "The first question will be about: \(firstQuestion.prompt)"
+                    "Keep the opening brief, friendly, and professional. Then ask the first question naturally."
+                    "Inform users that they can type in their own responses or choose an option from the buttons below."
+                    "The options are generated in the UI, don't list them in your response. Don't use bullet points."
+                }
+                
+                let stream = session.streamResponse(to: prompt)
+                do {
+                    for try await snapshot in stream {
+                        continuation.yield(StreamingTurn(
+                            partialText: snapshot.content,
+                            isComplete: false,
+                            mappedAnswer: nil,
+                            nextQuestionId: qid
+                        ))
+                    }
+                    continuation.yield(StreamingTurn(
+                        partialText: "",
+                        isComplete: true,
+                        mappedAnswer: nil,
+                        nextQuestionId: qid
+                    ))
+                } catch {
+                    // Fallback to static prompt
+                    continuation.yield(StreamingTurn(
+                        partialText: firstQuestion.prompt,
+                        isComplete: true,
+                        mappedAnswer: nil,
+                        nextQuestionId: qid
+                    ))
+                }
+                continuation.finish()
+            }
         }
     }
     
@@ -139,5 +202,121 @@ final class FoundationModelsConversationModel: ConversationModel {
             mappedAnswer: mapped,
             nextQuestionId: nextQuestionId
         )
+    }
+    
+    func streamNextTurn(for question: Question, userText: String?, conversationHistory: [ChatMessage]) async throws -> AsyncStream<StreamingTurn> {
+        guard let text = userText else {
+            return AsyncStream { continuation in
+                continuation.yield(StreamingTurn(
+                    partialText: question.prompt,
+                    isComplete: true,
+                    mappedAnswer: nil,
+                    nextQuestionId: question.next?.default
+                ))
+                continuation.finish()
+            }
+        }
+        
+        // Map the user's response to structured data
+        var mapped: MappedAnswer? = nil
+        if let key = question.key {
+            if let opt = question.options?.first(where: { 
+                $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text 
+            }) {
+                mapped = MappedAnswer(keyPath: key, valueId: opt.id)
+            } else if question.type == .free_text {
+                mapped = MappedAnswer(keyPath: key, valueId: text)
+            }
+        }
+        
+        let nextId = question.next?.default
+        
+        return AsyncStream { continuation in
+            Task {
+                // Check if consultation is complete
+                if nextId == "__complete__" || nextId == nil {
+                    let prompt = Prompt {
+                        "The patient has completed the consultation."
+                        "Generate a brief, warm closing message thanking them and letting them know you've gathered the information needed."
+                    }
+                    
+                    let stream = session.streamResponse(to: prompt)
+                    do {
+                        for try await snapshot in stream {
+                            continuation.yield(StreamingTurn(
+                                partialText: snapshot.content,
+                                isComplete: false,
+                                mappedAnswer: mapped,
+                                nextQuestionId: nextId
+                            ))
+                        }
+                        continuation.yield(StreamingTurn(
+                            partialText: "",
+                            isComplete: true,
+                            mappedAnswer: mapped,
+                            nextQuestionId: nextId
+                        ))
+                    } catch {
+                        continuation.yield(StreamingTurn(
+                            partialText: "Thank you for your time.",
+                            isComplete: true,
+                            mappedAnswer: mapped,
+                            nextQuestionId: nextId
+                        ))
+                    }
+                    continuation.finish()
+                    return
+                }
+                
+                guard let nextQuestionId = nextId, let nextQuestion = schema.byId[nextQuestionId] else {
+                    continuation.yield(StreamingTurn(
+                        partialText: "Thank you for sharing that information.",
+                        isComplete: true,
+                        mappedAnswer: mapped,
+                        nextQuestionId: nil
+                    ))
+                    continuation.finish()
+                    return
+                }
+                
+                // Generate transition to next question
+                let prompt = Prompt {
+                    "Previous question: \(question.prompt)"
+                    "Patient's answer: \(text)"
+                    "Next question topic: \(nextQuestion.prompt)"
+                    if let options = nextQuestion.options, !options.isEmpty {
+                        "Available response options: \(options.map { $0.label }.joined(separator: ", "))"
+                    }
+                    "Generate a brief acknowledgment of the patient's answer followed by the next question."
+                    "Keep the tone warm, professional, and conversational."
+                }
+                
+                let stream = session.streamResponse(to: prompt)
+                do {
+                    for try await snapshot in stream {
+                        continuation.yield(StreamingTurn(
+                            partialText: snapshot.content,
+                            isComplete: false,
+                            mappedAnswer: mapped,
+                            nextQuestionId: nextQuestionId
+                        ))
+                    }
+                    continuation.yield(StreamingTurn(
+                        partialText: "",
+                        isComplete: true,
+                        mappedAnswer: mapped,
+                        nextQuestionId: nextQuestionId
+                    ))
+                } catch {
+                    continuation.yield(StreamingTurn(
+                        partialText: nextQuestion.prompt,
+                        isComplete: true,
+                        mappedAnswer: mapped,
+                        nextQuestionId: nextQuestionId
+                    ))
+                }
+                continuation.finish()
+            }
+        }
     }
 }

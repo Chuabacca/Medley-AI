@@ -27,18 +27,35 @@ struct ChatView: View {
     }
     
     private var messagesScrollView: some View {
-        ScrollView {
-            LazyVStack(alignment: .leading, spacing: 12) {
-                ForEach(vm.messages) { msg in
-                    MessageRow(message: msg)
-                        .id(msg.id)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(vm.messages) { msg in
+                        MessageRow(message: msg)
+                            .id(msg.id)
+                    }
                 }
+                .padding(.horizontal)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal)
-            .scrollTargetLayout()
+            .onChange(of: vm.messages.count) { oldValue, newValue in
+                scrollToBottom(proxy: proxy)
+            }
+            .onChange(of: vm.messages.last?.text) { oldValue, newValue in
+                scrollToBottom(proxy: proxy)
+            }
+            .onAppear {
+                scrollToBottom(proxy: proxy)
+            }
         }
-        .scrollPosition(id: .constant(vm.messages.last?.id), anchor: .bottom)
-        .defaultScrollAnchor(.bottom)
+    }
+    
+    private func scrollToBottom(proxy: ScrollViewProxy) {
+        if let lastMessage = vm.messages.last {
+            withAnimation(.easeOut(duration: 0.2)) {
+                proxy.scrollTo(lastMessage.id, anchor: .bottom)
+            }
+        }
     }
     
     private var responseChipsView: some View {
@@ -109,18 +126,27 @@ struct MessageRow: View {
     var body: some View {
         HStack {
             if message.role == .user { Spacer() }
-            Text(message.text)
-                .padding(12)
-                .background(backgroundColor)
-                .foregroundStyle(foregroundColor)
-                .clipShape(UnevenRoundedRectangle(
-                    topLeadingRadius: 18,
-                    bottomLeadingRadius: message.role == .model ? 0 : 18,
-                    bottomTrailingRadius: message.role == .user ? 0 : 18,
-                    topTrailingRadius: 18
-                ))
+            Group {
+                if message.text.isEmpty && message.isStreaming {
+                    TypingIndicator()
+                } else {
+                    Text(message.text)
+                }
+            }
+            .padding(12)
+            .padding(.leading, message.role == .user ? 18 : 12)
+            .padding(.trailing, message.role == .model ? 18 : 12)
+            .background(backgroundColor)
+            .foregroundStyle(foregroundColor)
+            .clipShape(UnevenRoundedRectangle(
+                topLeadingRadius: 18,
+                bottomLeadingRadius: message.role == .model ? 0 : 18,
+                bottomTrailingRadius: message.role == .user ? 0 : 18,
+                topTrailingRadius: 18
+            ))
             if message.role == .model { Spacer() }
         }
+        .animation(.easeInOut(duration: 0.2), value: message.text)
     }
     
     private var backgroundColor: Color {
@@ -129,6 +155,32 @@ struct MessageRow: View {
     
     private var foregroundColor: Color {
         message.role == .user ? .white : .black
+    }
+}
+
+struct TypingIndicator: View {
+    @State private var animatingDots = [false, false, false]
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            ForEach(0..<3) { index in
+                Circle()
+                    .fill(Color.gray.opacity(0.6))
+                    .frame(width: 8, height: 8)
+                    .scaleEffect(animatingDots[index] ? 1.0 : 0.6)
+                    .animation(
+                        Animation.easeInOut(duration: 0.6)
+                            .repeatForever(autoreverses: true)
+                            .delay(Double(index) * 0.2),
+                        value: animatingDots[index]
+                    )
+            }
+        }
+        .onAppear {
+            for index in 0..<3 {
+                animatingDots[index] = true
+            }
+        }
     }
 }
 
