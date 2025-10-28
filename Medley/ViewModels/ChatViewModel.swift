@@ -65,7 +65,7 @@ final class ChatViewModel {
 
     private func advance(to nextId: String?) {
         // Check for completion
-        if nextId == "__complete__" {
+        if nextId == "consultation_end" {
             isComplete = true
             predefinedResponses = []
             return
@@ -74,7 +74,6 @@ final class ChatViewModel {
         guard let nextId, let nextQ = schema.byId[nextId] else { return }
         currentQuestionId = nextId
         predefinedResponses = nextQ.predefinedResponses ?? []
-        messages.append(ChatMessage(role: .model, text: nextQ.prompt))
     }
 
     private func assign(_ mapped: MappedAnswer) {

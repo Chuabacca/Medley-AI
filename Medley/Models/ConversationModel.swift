@@ -22,6 +22,7 @@ final class FoundationModelsConversationModel: ConversationModel {
         self.schema = schema
         
         let instructions = Instructions {
+            "You are the first point of contact for users coming to Hims & Hers for their healthcare needs."
             "You are an experienced, empathetic medical professional conducting a hair loss consultation."
             "Your role is to guide the patient through a series of questions with a warm bedside manner."
             "For each question, provide a conversational, professional prompt based on the question context."
@@ -48,6 +49,8 @@ final class FoundationModelsConversationModel: ConversationModel {
                 "Generate a warm opening message for a hair loss consultation."
                 "The first question will be about: \(firstQuestion.prompt)"
                 "Keep the opening brief, friendly, and professional. Then ask the first question naturally."
+                "Inform users that they can type in their own responses or choose an option from the buttons below."
+                "The options are generated in the UI, don't list them in your response. Don't use bullet points."
             }
             
             var responseText = ""

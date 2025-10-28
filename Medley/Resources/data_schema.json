@@ -1,9 +1,25 @@
 {
   "version": "1.0",
-  "intro": { "firstQuestionId": "hair_loss_location" },
+  "intro": { "firstQuestionId": "consultation_start" },
   "questions": [
     {
+      "id": "consultation_start",
+      "info": "Welcome to Hims & Hers. I'm so glad you have decided to trust us with your hair loss concerns.",
+      "prompt": "Tell us about your hair loss and goals.",
+      "type": "single_choice",
+      "options": [
+        { "id": "hairline", "label": "Receding hairline" },
+        { "id": "crown", "label": "Thinning at the crown" },
+        { "id": "diffuse", "label": "Thinning all over" },
+        { "id": "unsure", "label": "Not sure / none of the above" }
+      ],
+      "predefinedResponses": [],
+      "key": "goals.open",
+      "next": { "default": "hair_loss_location" }
+    },
+    {
       "id": "hair_loss_location",
+      "info": "",
       "prompt": "Where are you noticing changes to your hair?",
       "type": "single_choice",
       "options": [
@@ -17,6 +33,7 @@
     },
     {
       "id": "hair_loss_amount",
+      "info": "",
       "prompt": "How much hair have you lost?",
       "type": "single_choice",
       "options": [
@@ -27,10 +44,11 @@
       ],
       "predefinedResponses": ["A lot", "Some", "A little", "Not sure"],
       "key": "hair.changes.amount",
-      "next": { "default": "noticed_changes_timing" }
+      "next": { "default": "changes_timing" }
     },
     {
-      "id": "noticed_changes_timing",
+      "id": "changes_timing",
+      "info": "",
       "prompt": "When did you start noticing changes to your hair?",
       "type": "single_choice",
       "options": [
@@ -41,50 +59,27 @@
       ],
       "predefinedResponses": ["Over a year ago", "In the past year", "In the past few months", "Not sure"],
       "key": "hair.changes.duration",
-      "next": { "default": "family_history" }
+      "next": { "default": "treatment_goals" }
     },
     {
-      "id": "family_history",
-      "prompt": "Does hair loss run in your family?",
-      "type": "single_choice",
+      "id": "treatment_goals",
+      "info": "",
+      "prompt": "With treatment, what results are you hoping for?",
+      "type": "multiple_choice",
       "options": [
-        { "id": "yes", "label": "Yes" },
-        { "id": "no", "label": "No" },
-        { "id": "unsure", "label": "Not sure" }
+        { "id": "hairline", "label": "A stronger, defined hairline" },
+        { "id": "thicker", "label": "Visibly thicker, fuller hair" },
+        { "id": "coverage", "label": "More hair coverage" },
+        { "id": "keep", "label": "Keep the hair I still have" },
+        { "id": "all", "label": "All of the above" }
       ],
-      "predefinedResponses": ["Yes", "No", "Not sure"],
-      "key": "lifestyle.family_history",
-      "next": { "default": "stress_frequency" }
-    },
-    {
-      "id": "stress_frequency",
-      "prompt": "How often do you tend to experience stress?",
-      "type": "single_choice",
-      "options": [
-        { "id": "all_time", "label": "All the time" },
-        { "id": "sometimes", "label": "Sometimes" },
-        { "id": "rarely", "label": "Rarely" },
-        { "id": "unsure", "label": "Not sure" }
-      ],
-      "predefinedResponses": ["All the time", "Sometimes", "Rarely", "Not sure"],
-      "key": "lifestyle.stress",
-      "next": { "default": "hair_care_time" }
-    },
-    {
-      "id": "hair_care_time",
-      "prompt": "How much time do you spend on your hair every day?",
-      "type": "single_choice",
-      "options": [
-        { "id": "lt_10", "label": "Less than 10 minutes" },
-        { "id": "10_30", "label": "10 to 30 minutes" },
-        { "id": "gt_30", "label": "More than 30 minutes" }
-      ],
-      "predefinedResponses": ["Less than 10 minutes", "10 to 30 minutes", "More than 30 minutes"],
-      "key": "routine.care_time",
+      "predefinedResponses": ["A stronger, defined hairline", "Visibly thicker, fuller hair", "More hair coverage", "Keep the hair I still have", "All of the above"],
+      "key": "goals.treatment",
       "next": { "default": "hair_type" }
     },
     {
       "id": "hair_type",
+      "info": "",
       "prompt": "What's your hair type?",
       "type": "single_choice",
       "options": [
@@ -99,6 +94,7 @@
     },
     {
       "id": "hair_length",
+      "info": "",
       "prompt": "How long is your hair?",
       "type": "single_choice",
       "options": [
@@ -109,36 +105,50 @@
       ],
       "predefinedResponses": ["Buzzed, shaved, or bald", "Short", "Medium", "Long"],
       "key": "hair.length",
-      "next": { "default": "hair_loss_pattern" }
+      "next": { "default": "family_history" }
     },
     {
-      "id": "hair_loss_pattern",
-      "prompt": "Which best represents your hair loss and goals?",
+      "id": "family_history",
+      "info": "Let's talk about lifestyle factors. Aging, family history, and stress can cause shdding and thinning.",
+      "prompt": "Does hair loss run in your family?",
       "type": "single_choice",
       "options": [
-        { "id": "hairline", "label": "Receding hairline" },
-        { "id": "crown", "label": "Thinning at the crown" },
-        { "id": "diffuse", "label": "Thinning all over" },
-        { "id": "unsure", "label": "Not sure / none of the above" }
+        { "id": "yes", "label": "Yes" },
+        { "id": "no", "label": "No" },
+        { "id": "unsure", "label": "Not sure" }
       ],
-      "predefinedResponses": ["Receding hairline", "Thinning at the crown", "Thinning all over", "Not sure / none of the above"],
-      "key": "hair.pattern",
-      "next": { "default": "treatment_goals" }
+      "predefinedResponses": ["Yes", "No", "Not sure"],
+      "key": "lifestyle.family_history",
+      "next": { "default": "stress_frequency" }
     },
     {
-      "id": "treatment_goals",
-      "prompt": "With treatment, what results are you hoping for?",
-      "type": "multiple_choice",
+      "id": "stress_frequency",
+      "info": "",
+      "prompt": "How often do you tend to experience stress?",
+      "type": "single_choice",
       "options": [
-        { "id": "hairline", "label": "A stronger, defined hairline" },
-        { "id": "thicker", "label": "Visibly thicker, fuller hair" },
-        { "id": "coverage", "label": "More hair coverage" },
-        { "id": "keep", "label": "Keep the hair I still have" },
-        { "id": "all", "label": "All of the above" }
+        { "id": "all_time", "label": "All the time" },
+        { "id": "sometimes", "label": "Sometimes" },
+        { "id": "rarely", "label": "Rarely" },
+        { "id": "unsure", "label": "Not sure" }
       ],
-      "predefinedResponses": ["A stronger, defined hairline", "Visibly thicker, fuller hair", "More hair coverage", "Keep the hair I still have", "All of the above"],
-      "key": "goals.treatment",
-      "next": { "default": "__complete__" }
+      "predefinedResponses": ["All the time", "Sometimes", "Rarely", "Not sure"],
+      "key": "lifestyle.stress",
+      "next": { "default": "hair_care_time" }
+    },
+    {
+      "id": "hair_care_time",
+      "info": "Lets' get to know your hair routine. This will help us determine the appropriate treatment type.",
+      "prompt": "How much time do you spend on your hair every day?",
+      "type": "single_choice",
+      "options": [
+        { "id": "lt_5", "label": "Less than 5 minutes" },
+        { "id": "5_10", "label": "5 to 10 minutes" },
+        { "id": "gt_10", "label": "10+ minutes" }
+      ],
+      "predefinedResponses": ["Less than 5 minutes", "5 to 10 minutes", "10+ minutes"],
+      "key": "routine.care_time",
+      "next": { "default": "consultation_end" }
     }
   ]
 }
