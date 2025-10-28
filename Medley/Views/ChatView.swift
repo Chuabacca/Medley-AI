@@ -4,6 +4,10 @@ struct ChatView: View {
     @State private var viewModel = ChatViewModel()
     @State private var inputText = ""
     @State private var showResults = false
+    
+    private var isModelStreaming: Bool {
+        viewModel.messages.last?.isStreaming ?? false
+    }
 
     var body: some View {
         NavigationStack {
@@ -11,10 +15,13 @@ struct ChatView: View {
                 Color.backgroundWarm
                     .ignoresSafeArea()
                 
-                VStack(spacing: 8) {
+                ZStack(alignment: .bottom) {
                     messagesScrollView
-                    responseChipsView
-                    bottomControlView
+                    
+                    VStack(spacing: 0) {
+                        responseChipsView
+                        bottomControlView
+                    }
                 }
             }
             .navigationTitle("Consultation")
@@ -52,6 +59,12 @@ struct ChatView: View {
                 scrollToBottom(proxy: proxy)
             }
         }
+        .shadow(
+            color: Color.black.opacity(0.05),
+            radius: 8,
+            x: 0,
+            y: 4
+        )
     }
     
     private var messagesContent: some View {
@@ -62,19 +75,27 @@ struct ChatView: View {
             }
         }
         .padding(.horizontal)
+        .padding(.bottom, bottomContentPadding)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var bottomContentPadding: CGFloat {
+        return (!viewModel.predefinedResponses.isEmpty && !isModelStreaming) ? 120 : 40
     }
     
     private func scrollToBottom(proxy: ScrollViewProxy) {
         guard let lastMessage = viewModel.messages.last else { return }
-        withAnimation(.easeOut(duration: 0.2)) {
-            proxy.scrollTo(lastMessage.id, anchor: .bottom)
+        // Use a small delay to ensure layout is complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.easeOut(duration: 0.2)) {
+                proxy.scrollTo(lastMessage.id, anchor: .top)
+            }
         }
     }
     
     private var responseChipsView: some View {
         Group {
-            if !viewModel.predefinedResponses.isEmpty {
+            if !viewModel.predefinedResponses.isEmpty && !isModelStreaming {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(viewModel.predefinedResponses, id: \.self) { response in
@@ -82,9 +103,13 @@ struct ChatView: View {
                         }
                     }
                     .padding(.horizontal)
+                    .padding(.top, 8)
+                    .padding(.bottom, 4)
                 }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: isModelStreaming)
     }
     
     private func responseChip(_ text: String) -> some View {
@@ -95,9 +120,9 @@ struct ChatView: View {
         .foregroundStyle(Color.brandPrimary)
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color.white)
+        .background(.ultraThinMaterial)
         .clipShape(Capsule())
-        .shadow(color: Color.cardShadow, radius: 4, x: 0, y: 2)
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 0)
     }
     
     @ViewBuilder
@@ -129,15 +154,25 @@ struct ChatView: View {
             TextField("Type a message", text: $inputText)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color.white)
+                .background(.ultraThinMaterial)
                 .clipShape(Capsule())
-            
+                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 0)
+
             Button("Send") {
                 send(inputText)
             }
+            .font(.system(size: 16, weight: .semibold))
+            .foregroundStyle(sendButtonColor)
             .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+    
+    private var sendButtonColor: Color {
+        inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            ? Color.gray.opacity(0.5)
+            : Color.brandPrimary
     }
     
     // MARK: - Actions
