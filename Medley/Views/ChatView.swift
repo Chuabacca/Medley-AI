@@ -80,6 +80,9 @@ struct ChatView: View {
     }
     
     private var bottomContentPadding: CGFloat {
+        if viewModel.isComplete {
+            return 80  // Next button height
+        }
         return (!viewModel.predefinedResponses.isEmpty && !isModelStreaming) ? 120 : 40
     }
     
@@ -87,7 +90,7 @@ struct ChatView: View {
         guard let lastMessage = viewModel.messages.last else { return }
         // Use a small delay to ensure layout is complete
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            withAnimation(.easeOut(duration: 0.2)) {
+            withAnimation(.easeOut(duration: 0.4)) {
                 proxy.scrollTo(lastMessage.id, anchor: .top)
             }
         }
@@ -109,7 +112,7 @@ struct ChatView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: isModelStreaming)
+        .animation(.easeInOut(duration: 0.4), value: isModelStreaming)
     }
     
     private func responseChip(_ text: String) -> some View {
@@ -139,10 +142,10 @@ struct ChatView: View {
             showResults = true
         } label: {
             Text("Next")
-                .font(.system(size: 18, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
+                .frame(maxWidth: 250)
+                .padding(.vertical, 10)
                 .background(Color.brandDark)
                 .clipShape(Capsule())
         }

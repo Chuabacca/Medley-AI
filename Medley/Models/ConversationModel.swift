@@ -6,6 +6,8 @@ protocol ConversationModel {
     func openingMessage(schema: DataSchema) async -> ChatMessage
     func streamOpeningMessage(schema: DataSchema) async throws -> AsyncStream<StreamingTurn>
     func streamNextTurn(for question: Question, userText: String?, conversationHistory: [ChatMessage]) async throws -> AsyncStream<StreamingTurn>
+    func streamInfoSummary(info: String) async throws -> AsyncStream<StreamingTurn>
+    func streamQuestion(for question: Question) async throws -> AsyncStream<StreamingTurn>
 }
 
 struct StreamingTurn {
@@ -13,6 +15,7 @@ struct StreamingTurn {
     let isComplete: Bool
     let mappedAnswer: MappedAnswer?
     let nextQuestionId: String?
+    let nextQuestionInfo: String?
 }
 
 /// FoundationModels-powered conversation model with dynamic response generation
@@ -57,6 +60,7 @@ final class FoundationModelsConversationModel: ConversationModel {
         }
         
         let prompt = Prompt {
+            "You represent Hims & Hers. You do not have a name."
             "Generate a warm opening message for a hair loss consultation."
             "The first question will be about: \(firstQuestion.prompt)"
             "Keep the opening brief, friendly, and professional. Then ask the first question naturally."
@@ -105,23 +109,64 @@ final class FoundationModelsConversationModel: ConversationModel {
             )
         }
         
-        // Generate transition to next question
-        let prompt = Prompt {
-            "Previous question: \(question.prompt)"
-            "Patient's answer: \(text)"
-            "Next question topic: \(nextQuestion.prompt)"
-//            if let options = nextQuestion.options, !options.isEmpty {
-//                "Available response options (do not list them in the response): \(options.map { $0.label }.joined(separator: ", "))"
-//            }
-            "Generate a brief acknowledgment of the patient's answer followed by the next question."
-            "Keep the tone warm, professional, and conversational."
+        // If next question has info, only generate acknowledgment
+        // Otherwise, generate acknowledgment + next question together
+        let prompt: Prompt
+        if let info = nextQuestion.info, !info.isEmpty {
+            prompt = Prompt {
+                "Previous question: \(question.prompt)"
+                "Patient's answer: \(text)"
+                "Generate a brief, warm acknowledgment of the patient's answer."
+                "Do not ask a question."
+            }
+        } else {
+            prompt = Prompt {
+                "Previous question: \(question.prompt)"
+                "Patient's answer: \(text)"
+                "Next question topic: \(nextQuestion.prompt)"
+                "Generate a brief acknowledgment of the patient's answer followed by the next question."
+                "Keep the tone warm, professional, and conversational."
+            }
         }
         
         return createStream(
             prompt: prompt,
             mappedAnswer: mapped,
             nextQuestionId: nextQuestionId,
-            fallbackText: nextQuestion.prompt
+            nextQuestionInfo: nextQuestion.info,
+            fallbackText: "Thank you for sharing that."
+        )
+    }
+    
+    func streamInfoSummary(info: String) async throws -> AsyncStream<StreamingTurn> {
+        let prompt = Prompt {
+            "Summarize the following information in a warm and friendly tone:"
+            info
+            "Keep it brief and conversational."
+        }
+        
+        return createStream(
+            prompt: prompt,
+            mappedAnswer: nil,
+            nextQuestionId: nil,
+            nextQuestionInfo: nil,
+            fallbackText: info
+        )
+    }
+    
+    func streamQuestion(for question: Question) async throws -> AsyncStream<StreamingTurn> {
+        let prompt = Prompt {
+            "Next question topic: \(question.prompt)"
+            "Generate a brief question for the next topic."
+            "Keep the tone warm, professional, and conversational."
+        }
+        
+        return createStream(
+            prompt: prompt,
+            mappedAnswer: nil,
+            nextQuestionId: nil,
+            nextQuestionInfo: nil,
+            fallbackText: question.prompt
         )
     }
     
@@ -145,6 +190,7 @@ final class FoundationModelsConversationModel: ConversationModel {
         prompt: Prompt,
         mappedAnswer: MappedAnswer?,
         nextQuestionId: String?,
+        nextQuestionInfo: String? = "",
         fallbackText: String
     ) -> AsyncStream<StreamingTurn> {
         AsyncStream { continuation in
@@ -156,21 +202,24 @@ final class FoundationModelsConversationModel: ConversationModel {
                             partialText: snapshot.content,
                             isComplete: false,
                             mappedAnswer: mappedAnswer,
-                            nextQuestionId: nextQuestionId
+                            nextQuestionId: nextQuestionId,
+                            nextQuestionInfo: nextQuestionInfo
                         ))
                     }
                     continuation.yield(StreamingTurn(
                         partialText: "",
                         isComplete: true,
                         mappedAnswer: mappedAnswer,
-                        nextQuestionId: nextQuestionId
+                        nextQuestionId: nextQuestionId,
+                        nextQuestionInfo: nextQuestionInfo
                     ))
                 } catch {
                     continuation.yield(StreamingTurn(
                         partialText: fallbackText,
                         isComplete: true,
                         mappedAnswer: mappedAnswer,
-                        nextQuestionId: nextQuestionId
+                        nextQuestionId: nextQuestionId,
+                        nextQuestionInfo: nextQuestionInfo
                     ))
                 }
                 continuation.finish()
@@ -181,14 +230,16 @@ final class FoundationModelsConversationModel: ConversationModel {
     private func fallbackStream(
         text: String,
         mappedAnswer: MappedAnswer?,
-        nextQuestionId: String?
+        nextQuestionId: String?,
+        nextQuestionInfo: String? = nil
     ) -> AsyncStream<StreamingTurn> {
         AsyncStream { continuation in
             continuation.yield(StreamingTurn(
                 partialText: text,
                 isComplete: true,
                 mappedAnswer: mappedAnswer,
-                nextQuestionId: nextQuestionId
+                nextQuestionId: nextQuestionId,
+                nextQuestionInfo: nextQuestionInfo
             ))
             continuation.finish()
         }

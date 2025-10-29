@@ -75,12 +75,14 @@ final class ChatViewModel {
     
     private func streamResponse(for question: Question, userText: String) async {
         do {
+            // 1. Stream acknowledgment
             let streamingMessage = ChatMessage(role: .model, text: "", isStreaming: true)
             messages.append(streamingMessage)
             let messageIndex = messages.count - 1
             
             var mappedAnswer: MappedAnswer?
             var nextQuestionId: String?
+            var nextQuestionInfo: String?
             
             let stream = try await model.streamNextTurn(
                 for: question,
@@ -93,6 +95,7 @@ final class ChatViewModel {
                     messages[messageIndex].isStreaming = false
                     mappedAnswer = turn.mappedAnswer
                     nextQuestionId = turn.nextQuestionId
+                    nextQuestionInfo = turn.nextQuestionInfo
                 } else {
                     messages[messageIndex].text = turn.partialText
                 }
@@ -102,7 +105,7 @@ final class ChatViewModel {
                 assign(mapped)
             }
             
-            await advance(to: nextQuestionId)
+            await advance(to: nextQuestionId, info: nextQuestionInfo)
         } catch {
             print("Error generating response: \(error)")
             messages.append(ChatMessage(
@@ -112,7 +115,7 @@ final class ChatViewModel {
         }
     }
     
-    private func advance(to nextId: String?) async {
+    private func advance(to nextId: String?, info: String?) async {
         if nextId == "consultation_end" {
             isComplete = true
             predefinedResponses = []
@@ -123,10 +126,49 @@ final class ChatViewModel {
         currentQuestionId = nextId
         predefinedResponses = nextQuestion.predefinedResponses ?? []
         
-        if let info = nextQuestion.info, !info.isEmpty {
-            messages.append(ChatMessage(role: .model, text: info))
-            try? await Task.sleep(nanoseconds: 400_000_000)
+        // Only stream info summary and question separately if info is present
+        if let info, !info.isEmpty {
+            // 2. Stream info summary
+            do {
+                var infoMessage = ChatMessage(role: .model, text: "", isStreaming: true)
+                messages.append(infoMessage)
+                let infoIndex = messages.count - 1
+                
+                let infoStream = try await model.streamInfoSummary(info: info)
+                for await turn in infoStream {
+                    if turn.isComplete {
+                        messages[infoIndex].isStreaming = false
+                    } else {
+                        messages[infoIndex].text = turn.partialText
+                    }
+                }
+                
+                try? await Task.sleep(nanoseconds: 400_000_000)
+            } catch {
+                print("Error generating info summary: \(error)")
+                messages.append(ChatMessage(role: .model, text: info))
+            }
+            
+            // 3. Stream the question
+            do {
+                var questionMessage = ChatMessage(role: .model, text: "", isStreaming: true)
+                messages.append(questionMessage)
+                let questionIndex = messages.count - 1
+                
+                let questionStream = try await model.streamQuestion(for: nextQuestion)
+                for await turn in questionStream {
+                    if turn.isComplete {
+                        messages[questionIndex].isStreaming = false
+                    } else {
+                        messages[questionIndex].text = turn.partialText
+                    }
+                }
+            } catch {
+                print("Error generating question: \(error)")
+                messages.append(ChatMessage(role: .model, text: nextQuestion.prompt))
+            }
         }
+        // If no info, the acknowledgment already included the next question
     }
 
     private func assign(_ mapped: MappedAnswer) {
