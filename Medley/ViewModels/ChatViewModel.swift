@@ -228,8 +228,15 @@ final class ChatViewModel {
     }
     
     private func assignGoalsData(path: String, value: String) {
-        if path == "treatment" && !data.goals.treatment.contains(value) {
-            data.goals.treatment.append(value)
+        switch path {
+        case "open":
+            data.goals.open = value
+        case "treatment":
+            if !data.goals.treatment.contains(value) {
+                data.goals.treatment.append(value)
+            }
+        default:
+            break
         }
     }
 }

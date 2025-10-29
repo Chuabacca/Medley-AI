@@ -84,7 +84,7 @@ final class FoundationModelsConversationModel: ConversationModel {
             )
         }
         
-        let mapped = mapAnswer(from: text, for: question)
+        let mapped = await mapAnswer(from: text, for: question)
         let nextId = question.next?.default
         
         // Check if consultation is complete
@@ -172,18 +172,79 @@ final class FoundationModelsConversationModel: ConversationModel {
     
     // MARK: - Private Helpers
     
-    private func mapAnswer(from text: String, for question: Question) -> MappedAnswer? {
+    private func mapAnswer(from text: String, for question: Question) async -> MappedAnswer? {
         guard let key = question.key else { return nil }
         
+        // First, try exact match with option label or id
         if let option = question.options?.first(where: {
             $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
         }) {
             return MappedAnswer(keyPath: key, valueId: option.id)
-        } else if question.type == .free_text {
+        }
+        
+        // For free text questions, save the user's exact response
+        if question.type == .free_text {
             return MappedAnswer(keyPath: key, valueId: text)
         }
         
+        // For questions with predefined options, use LLM to categorize open-ended response
+        if let options = question.options, !options.isEmpty {
+            do {
+                let categorizedOption = try await categorizeResponse(
+                    userResponse: text,
+                    question: question.prompt,
+                    options: options
+                )
+                return MappedAnswer(keyPath: key, valueId: categorizedOption)
+            } catch {
+                print("Error categorizing response: \(error)")
+                // Fallback: use first option if categorization fails
+                if let firstOption = options.first {
+                    return MappedAnswer(keyPath: key, valueId: firstOption.id)
+                }
+            }
+        }
+        
         return nil
+    }
+    
+    private func categorizeResponse(
+        userResponse: String,
+        question: String,
+        options: [Option]
+    ) async throws -> String {
+        let optionsList = options.map { "- \($0.id): \($0.label)" }.joined(separator: "\n")
+        
+        let prompt = Prompt {
+            "Question: \(question)"
+            "User's response: \(userResponse)"
+            "Available categories:"
+            optionsList
+            "Based on the user's response, which category ID best matches? Respond with ONLY the category ID, nothing else."
+        }
+        
+        var responseText = ""
+        let stream = session.streamResponse(to: prompt)
+        for try await snapshot in stream {
+            responseText = snapshot.content
+        }
+        
+        let categoryId = responseText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Validate the category ID exists
+        if options.contains(where: { $0.id == categoryId }) {
+            return categoryId
+        }
+        
+        // If invalid, try to find a match in the response
+        for option in options {
+            if categoryId.contains(option.id) {
+                return option.id
+            }
+        }
+        
+        // Fallback to first option
+        return options.first?.id ?? ""
     }
     
     private func createStream(

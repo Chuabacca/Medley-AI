@@ -16,7 +16,10 @@ struct StructuredConsult: Codable {
 
     struct Lifestyle: Codable { var family_history: String?; var stress: String? }
     struct Routine: Codable { var care_time: String? }
-    struct Goals: Codable { var treatment: [String] = [] }
+    struct Goals: Codable {
+        var open: String?
+        var treatment: [String] = []
+    }
 }
 
 struct ChatMessage: Identifiable, Codable {

@@ -6,13 +6,8 @@
       "id": "consultation_start",
       "info": "Welcome to Hims & Hers. I'm so glad you have decided to trust us with your hair loss concerns.",
       "prompt": "Tell us about your hair loss and goals.",
-      "type": "single_choice",
-      "options": [
-        { "id": "hairline", "label": "Receding hairline" },
-        { "id": "crown", "label": "Thinning at the crown" },
-        { "id": "diffuse", "label": "Thinning all over" },
-        { "id": "unsure", "label": "Not sure / none of the above" }
-      ],
+      "type": "free_text",
+      "options": [],
       "predefinedResponses": [],
       "key": "goals.open",
       "next": { "default": "hair_loss_location" }

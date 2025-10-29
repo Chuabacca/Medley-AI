@@ -71,7 +71,24 @@ struct ResultsView: View {
                     .shadow(color: Color.cardShadow, radius: 12, x: 0, y: 4)
                     .padding(.horizontal, 24)
                     
-                    Spacer(minLength: 100)
+                    // Raw JSON data section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Raw Data")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                        
+                        ScrollView(.horizontal, showsIndicators: true) {
+                            Text(prettyPrintedJSON)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(.secondary)
+                                .padding(12)
+                                .background(Color.gray.opacity(0.1))
+                                .cornerRadius(8)
+                                .frame(maxWidth: .infinity, alignment: .init(horizontal: .leading, vertical: .top))
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 40)
                 }
             }
             .background(Color.backgroundWarm)
@@ -96,28 +113,22 @@ struct ResultsView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-//                Button {
-//                    // Next action
-//                } label: {
-//                    HStack {
-//                        Text("Next")
-//                            .font(.system(size: 18, weight: .semibold))
-//                        Image(systemName: "arrow.right")
-//                    }
-//                    .foregroundStyle(.white)
-//                    .frame(maxWidth: .infinity)
-//                    .padding(.vertical, 18)
-//                    .background(Color.black)
-//                    .clipShape(Capsule())
-//                    .padding(.horizontal, 24)
-//                    .padding(.vertical, 16)
-//                }
-//                .background(Color(red: 0.97, green: 0.95, blue: 0.93))
             }
         }
     }
     
     // MARK: - Computed properties
+    
+    private var prettyPrintedJSON: String {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        
+        if let jsonData = try? encoder.encode(data),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            return jsonString
+        }
+        return "{}"
+    }
     
     private var hasHairChanges: Bool {
         data.hair.changes.location != nil || 
@@ -175,9 +186,9 @@ struct ResultsView: View {
     
     private func formatCareTime(_ time: String) -> String {
         switch time {
-        case "lt_10": return "Less than 5 min. routine"
-        case "10_30": return "10-30 min. routine"
-        case "gt_30": return "More than 30 min. routine"
+        case "lt_5": return "Less than 5 minutes"
+        case "5_10": return "5-10 minutes"
+        case "gt_10": return "10+ minutes"
         default: return time
         }
     }
