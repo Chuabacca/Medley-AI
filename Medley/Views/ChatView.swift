@@ -148,7 +148,7 @@ struct ChatView: View {
                 .foregroundStyle(Color.brandDark)
                 .frame(maxWidth: 250)
                 .padding(.vertical, 10)
-                .backgroundStyle(Color.black)
+                .backgroundStyle(.black)
                 .clipShape(Capsule())
         }
         .padding()

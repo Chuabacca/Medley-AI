@@ -33,6 +33,8 @@ final class FoundationModelsConversationModel: ConversationModel {
             "For each question, provide a conversational, professional prompt based on the question context."
             "When the user answers, acknowledge their response naturally before moving to the next question."
             "Keep responses concise, supportive, and medically appropriate."
+            "NEVER start responses with phrases like 'Sure!', 'Absolutely!', 'Of course!', 'Great!', or other overly enthusiastic interjections."
+            "Begin directly with substantive content in a calm, professional tone."
         }
         
         self.session = LanguageModelSession(instructions: instructions)
@@ -79,6 +81,7 @@ final class FoundationModelsConversationModel: ConversationModel {
             "Generate a warm opening message for a hair loss consultation."
             "The first question will be about: \(firstQuestion.prompt)"
             "Keep the opening brief, friendly, and professional. Then ask the first question naturally."
+            "Do not use phrases like 'Sure!', 'Absolutely!', or other casual interjections. Start directly with your message."
         }
         
         return createStream(
@@ -133,6 +136,7 @@ final class FoundationModelsConversationModel: ConversationModel {
                 "Patient's answer: \(text)"
                 "Generate a brief, warm acknowledgment of the patient's answer."
                 "Do not ask a question."
+                "Do not start with 'Sure!', 'Absolutely!', 'Great!', or similar phrases. Begin naturally."
             }
         } else {
             prompt = Prompt {
@@ -141,6 +145,7 @@ final class FoundationModelsConversationModel: ConversationModel {
                 "Next question topic: \(nextQuestion.prompt)"
                 "Generate a brief acknowledgment of the patient's answer followed by the next question."
                 "Keep the tone warm, professional, and conversational."
+                "Do not start with 'Sure!', 'Absolutely!', 'Great!', or similar phrases. Begin naturally."
             }
         }
         
@@ -174,6 +179,7 @@ final class FoundationModelsConversationModel: ConversationModel {
             "Next question topic: \(question.prompt)"
             "Generate a brief question for the next topic."
             "Keep the tone warm, professional, and conversational."
+            "Do not start with 'Sure!', 'Absolutely!', or similar phrases. Begin directly with the question."
         }
         
         return createStream(
