@@ -30,8 +30,10 @@ final class ChatViewModel {
         currentQuestionId = schema.intro.firstQuestionId
         predefinedResponses = currentQuestion?.predefinedResponses ?? []
         
+        // Show typing indicator immediately
+        messages.append(ChatMessage(role: .model, text: "", isStreaming: true))
+        
         Task { @MainActor in
-            await model.prewarm()
             await streamOpeningMessage()
         }
     }
@@ -53,8 +55,7 @@ final class ChatViewModel {
     
     private func streamOpeningMessage() async {
         do {
-            let streamingMessage = ChatMessage(role: .model, text: "", isStreaming: true)
-            messages.append(streamingMessage)
+            // Message already added in start(), just get its index
             let messageIndex = messages.count - 1
             
             let stream = try await model.streamOpeningMessage(schema: schema)

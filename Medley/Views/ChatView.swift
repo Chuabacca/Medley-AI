@@ -26,7 +26,9 @@ struct ChatView: View {
             }
             .navigationTitle("Consultation")
             .toolbar { toolbar }
-            .onAppear { viewModel.start() }
+            .onAppear {
+                viewModel.start()
+            }
             .sheet(isPresented: $showResults) {
                 ResultsView(data: viewModel.data)
             }
@@ -143,10 +145,10 @@ struct ChatView: View {
         } label: {
             Text("Next")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.brandDark)
                 .frame(maxWidth: 250)
                 .padding(.vertical, 10)
-                .background(Color.brandDark)
+                .backgroundStyle(Color.black)
                 .clipShape(Capsule())
         }
         .padding()
@@ -244,35 +246,26 @@ struct MessageRow: View {
 // MARK: - TypingIndicator
 
 struct TypingIndicator: View {
-    @State private var animatingDots = [false, false, false]
-    
-    private let dotCount = 3
-    private let dotSize: CGFloat = 8
-    private let animationDuration: Double = 0.6
-    private let animationDelay: Double = 0.2
+    @State private var isAnimating = false
     
     var body: some View {
         HStack(spacing: 4) {
-            ForEach(0..<dotCount, id: \.self) { index in
-                dot(at: index)
+            ForEach(0..<3, id: \.self) { index in
+                Circle()
+                    .fill(Color.gray.opacity(0.6))
+                    .frame(width: 8, height: 8)
+                    .scaleEffect(isAnimating ? 1.0 : 0.5)
+                    .animation(
+                        .easeInOut(duration: 0.6)
+                        .repeatForever()
+                        .delay(Double(index) * 0.2),
+                        value: isAnimating
+                    )
             }
         }
         .onAppear {
-            animatingDots = Array(repeating: true, count: dotCount)
+            isAnimating = true
         }
-    }
-    
-    private func dot(at index: Int) -> some View {
-        Circle()
-            .fill(Color.gray.opacity(0.6))
-            .frame(width: dotSize, height: dotSize)
-            .scaleEffect(animatingDots[index] ? 1.0 : 0.6)
-            .animation(
-                .easeInOut(duration: animationDuration)
-                    .repeatForever(autoreverses: true)
-                    .delay(Double(index) * animationDelay),
-                value: animatingDots[index]
-            )
     }
 }
 

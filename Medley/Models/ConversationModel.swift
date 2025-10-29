@@ -39,7 +39,22 @@ final class FoundationModelsConversationModel: ConversationModel {
     }
     
     func prewarm() async {
-        session.prewarm()
+        // Prewarm on a background thread to avoid blocking main thread
+        await Task.detached(priority: .userInitiated) {
+            self.session.prewarm()
+            
+            // Force actual model initialization with a dummy request
+            let warmupPrompt = Prompt { "Hello" }
+            do {
+                let stream = self.session.streamResponse(to: warmupPrompt)
+                for try await _ in stream {
+                    // Consume stream to force model load
+                    break // Only need first token
+                }
+            } catch {
+                // Silently ignore warmup errors
+            }
+        }.value
     }
     
     func openingMessage(schema: DataSchema) async -> ChatMessage {
