@@ -57,7 +57,7 @@ final class FoundationModelsConversationModel: ConversationModel {
         }
         
         let prompt = Prompt {
-            "You represent Hims & Hers. You do not have a name."
+            "You represent Hims. You do not have a name."
             "Generate a warm opening message for a hair loss consultation."
             "The first question will be about: \(firstQuestion.prompt)"
             "Keep the opening brief, friendly, and professional. Then ask the first question naturally."
@@ -114,7 +114,7 @@ final class FoundationModelsConversationModel: ConversationModel {
             prompt = Prompt {
                 "Previous question: \(question.prompt)"
                 "Patient's answer: \(text)"
-                "Generate a brief, warm acknowledgment of the patient's answer."
+                "Generate a warm acknowledgment of the patient's answer."
                 "Do not ask a question."
                 "Do not start with 'Sure!', 'Absolutely!', 'Great!', or similar phrases. Begin naturally."
             }
