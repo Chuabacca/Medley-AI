@@ -25,7 +25,6 @@ struct StructuredConsult: Codable {
         case hairCareTime = "hair_care_time"
     }
 }
-}
 
 struct ChatMessage: Identifiable, Codable {
     enum Role: String, Codable { case user, model, system }

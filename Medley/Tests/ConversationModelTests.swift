@@ -326,10 +326,6 @@ final class MockStreamingConversationModel: ConversationModel {
         self.shouldSucceed = shouldSucceed
     }
     
-    func prewarm() async {
-        // No-op for testing
-    }
-    
     func openingMessage(schema: DataSchema) async -> ChatMessage {
         guard let firstQuestion = schema.byId[schema.intro.firstQuestionId] else {
             return ChatMessage(role: .model, text: "Let's get started.")

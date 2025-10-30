@@ -2,7 +2,6 @@ import FoundationModels
 import Foundation
 
 protocol ConversationModel {
-    func prewarm() async
     func openingMessage(schema: DataSchema) async -> ChatMessage
     func streamOpeningMessage(schema: DataSchema) async throws -> AsyncStream<StreamingTurn>
     func streamNextTurn(for question: Question, userText: String?, conversationHistory: [ChatMessage]) async throws -> AsyncStream<StreamingTurn>
@@ -38,25 +37,6 @@ final class FoundationModelsConversationModel: ConversationModel {
         }
         
         self.session = LanguageModelSession(instructions: instructions)
-    }
-    
-    func prewarm() async {
-        // Prewarm on a background thread to avoid blocking main thread
-        await Task.detached(priority: .userInitiated) {
-            self.session.prewarm()
-            
-            // Force actual model initialization with a dummy request
-            let warmupPrompt = Prompt { "Hello" }
-            do {
-                let stream = self.session.streamResponse(to: warmupPrompt)
-                for try await _ in stream {
-                    // Consume stream to force model load
-                    break // Only need first token
-                }
-            } catch {
-                // Silently ignore warmup errors
-            }
-        }.value
     }
     
     func openingMessage(schema: DataSchema) async -> ChatMessage {

@@ -131,7 +131,7 @@ final class ChatViewModel {
         if let info, !info.isEmpty {
             // 2. Stream info summary
             do {
-                var infoMessage = ChatMessage(role: .model, text: "", isStreaming: true)
+                let infoMessage = ChatMessage(role: .model, text: "", isStreaming: true)
                 messages.append(infoMessage)
                 let infoIndex = messages.count - 1
                 
@@ -152,7 +152,7 @@ final class ChatViewModel {
             
             // 3. Stream the question
             do {
-                var questionMessage = ChatMessage(role: .model, text: "", isStreaming: true)
+                let questionMessage = ChatMessage(role: .model, text: "", isStreaming: true)
                 messages.append(questionMessage)
                 let questionIndex = messages.count - 1
                 
