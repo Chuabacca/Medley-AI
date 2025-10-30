@@ -173,71 +173,37 @@ final class ChatViewModel {
     }
 
     private func assign(_ mapped: MappedAnswer) {
-        let components = mapped.keyPath.split(separator: ".").map(String.init)
-        guard let category = components.first else { return }
+        let questionId = mapped.keyPath
+        let value = mapped.valueId
         
-        let path = components.dropFirst().joined(separator: ".")
-        
-        switch category {
-        case "hair":
-            assignHairData(path: path, value: mapped.valueId)
-        case "lifestyle":
-            assignLifestyleData(path: path, value: mapped.valueId)
-        case "routine":
-            assignRoutineData(path: path, value: mapped.valueId)
-        case "goals":
-            assignGoalsData(path: path, value: mapped.valueId)
-        default:
-            break
-        }
-    }
-    
-    private func assignHairData(path: String, value: String) {
-        switch path {
-        case "changes.location":
-            data.hair.changes.location = value
-        case "changes.amount":
-            data.hair.changes.amount = value
-        case "changes.duration":
-            data.hair.changes.duration = value
-        case "pattern":
-            data.hair.pattern = value
-        case "type":
-            data.hair.type = value
-        case "length":
-            data.hair.length = value
-        default:
-            break
-        }
-    }
-    
-    private func assignLifestyleData(path: String, value: String) {
-        switch path {
-        case "family_history":
-            data.lifestyle.family_history = value
-        case "stress":
-            data.lifestyle.stress = value
-        default:
-            break
-        }
-    }
-    
-    private func assignRoutineData(path: String, value: String) {
-        if path == "care_time" {
-            data.routine.care_time = value
-        }
-    }
-    
-    private func assignGoalsData(path: String, value: String) {
-        switch path {
-        case "open":
-            data.goals.open = value
-        case "treatment":
-            if !data.goals.treatment.contains(value) {
-                data.goals.treatment.append(value)
+        switch questionId {
+        case "consultation_start":
+            data.consultationStart = value
+        case "hair_loss_location":
+            data.hairLossLocation = value
+        case "hair_loss_amount":
+            data.hairLossAmount = value
+        case "changes_timing":
+            data.changesTiming = value
+        case "treatment_goals":
+            if data.treatmentGoals == nil {
+                data.treatmentGoals = []
             }
+            if !data.treatmentGoals!.contains(value) {
+                data.treatmentGoals!.append(value)
+            }
+        case "hair_type":
+            data.hairType = value
+        case "hair_length":
+            data.hairLength = value
+        case "family_history":
+            data.familyHistory = value
+        case "stress_frequency":
+            data.stressFrequency = value
+        case "hair_care_time":
+            data.hairCareTime = value
         default:
-            break
+            print("Unknown question ID: \(questionId)")
         }
     }
 }

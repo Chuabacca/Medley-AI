@@ -1,25 +1,30 @@
 import Foundation
 
 struct StructuredConsult: Codable {
-    var hair = Hair()
-    var lifestyle = Lifestyle()
-    var routine = Routine()
-    var goals = Goals()
-
-    struct Hair: Codable {
-        struct Changes: Codable { var location: String?; var amount: String?; var duration: String? }
-        var changes = Changes()
-        var pattern: String?
-        var type: String?
-        var length: String?
+    var consultationStart: String?
+    var hairLossLocation: String?
+    var hairLossAmount: String?
+    var changesTiming: String?
+    var treatmentGoals: [String]?
+    var hairType: String?
+    var hairLength: String?
+    var familyHistory: String?
+    var stressFrequency: String?
+    var hairCareTime: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case consultationStart = "consultation_start"
+        case hairLossLocation = "hair_loss_location"
+        case hairLossAmount = "hair_loss_amount"
+        case changesTiming = "changes_timing"
+        case treatmentGoals = "treatment_goals"
+        case hairType = "hair_type"
+        case hairLength = "hair_length"
+        case familyHistory = "family_history"
+        case stressFrequency = "stress_frequency"
+        case hairCareTime = "hair_care_time"
     }
-
-    struct Lifestyle: Codable { var family_history: String?; var stress: String? }
-    struct Routine: Codable { var care_time: String? }
-    struct Goals: Codable {
-        var open: String?
-        var treatment: [String] = []
-    }
+}
 }
 
 struct ChatMessage: Identifiable, Codable {

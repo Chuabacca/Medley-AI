@@ -32,11 +32,11 @@ struct ResultsView: View {
                             // Hair changes section
                             if hasHairChanges {
                                 SectionView(title: "Hair changes") {
-                                    if let location = data.hair.changes.location {
+                                    if let location = data.hairLossLocation {
                                         ItemView(text: formatHairLocation(location))
                                     }
-                                    if let duration = data.hair.changes.duration {
-                                        ItemView(text: formatDuration(duration))
+                                    if let timing = data.changesTiming {
+                                        ItemView(text: formatDuration(timing))
                                     }
                                 }
                             }
@@ -44,10 +44,10 @@ struct ResultsView: View {
                             // Lifestyle factors section
                             if hasLifestyleFactors {
                                 SectionView(title: "Lifestyle factors") {
-                                    if let familyHistory = data.lifestyle.family_history {
+                                    if let familyHistory = data.familyHistory {
                                         ItemView(text: "Family history: \(formatYesNo(familyHistory))")
                                     }
-                                    if let stress = data.lifestyle.stress {
+                                    if let stress = data.stressFrequency {
                                         ItemView(text: "Stress: \(formatStress(stress))")
                                     }
                                 }
@@ -56,7 +56,7 @@ struct ResultsView: View {
                             // Hair routine section
                             if hasHairRoutine {
                                 SectionView(title: "Hair routine") {
-                                    if let careTime = data.routine.care_time {
+                                    if let careTime = data.hairCareTime {
                                         ItemView(text: formatCareTime(careTime))
                                     }
                                     ItemView(text: "No styling")
@@ -131,17 +131,17 @@ struct ResultsView: View {
     }
     
     private var hasHairChanges: Bool {
-        data.hair.changes.location != nil || 
-        data.hair.changes.amount != nil || 
-        data.hair.changes.duration != nil
+        data.hairLossLocation != nil || 
+        data.hairLossAmount != nil || 
+        data.changesTiming != nil
     }
     
     private var hasLifestyleFactors: Bool {
-        data.lifestyle.family_history != nil || data.lifestyle.stress != nil
+        data.familyHistory != nil || data.stressFrequency != nil
     }
     
     private var hasHairRoutine: Bool {
-        data.routine.care_time != nil
+        data.hairCareTime != nil
     }
     
     // MARK: - Formatters
@@ -245,22 +245,15 @@ struct RoundedRectangle: Shape {
 }
 
 #Preview {
-    ResultsView(data: StructuredConsult(
-        hair: StructuredConsult.Hair(
-            changes: StructuredConsult.Hair.Changes(
-                location: "crown",
-                amount: "some",
-                duration: "over_1y"
-            ),
-            pattern: "crown",
-            type: "straight_wavy",
-            length: "short"
-        ),
-        lifestyle: StructuredConsult.Lifestyle(
-            family_history: "yes",
-            stress: "rarely"
-        ),
-        routine: StructuredConsult.Routine(care_time: "lt_10"),
-        goals: StructuredConsult.Goals(treatment: ["hairline", "thicker"])
-    ))
+    var data = StructuredConsult()
+    data.hairLossLocation = "crown"
+    data.hairLossAmount = "some"
+    data.changesTiming = "over_1y"
+    data.hairType = "straight_wavy"
+    data.hairLength = "short"
+    data.familyHistory = "yes"
+    data.stressFrequency = "rarely"
+    data.hairCareTime = "lt_5"
+    data.treatmentGoals = ["hairline", "thicker"]
+    return ResultsView(data: data)
 }

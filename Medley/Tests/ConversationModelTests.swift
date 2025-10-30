@@ -22,7 +22,6 @@ struct ConversationModelTests {
                         Option(id: "opt2", label: "Option 2")
                     ],
                     predefinedResponses: ["Option 1", "Option 2"],
-                    key: "test.key1",
                     next: NextRules(default: "q2")
                 ),
                 Question(
@@ -32,7 +31,6 @@ struct ConversationModelTests {
                     type: .free_text,
                     options: nil,
                     predefinedResponses: nil,
-                    key: "test.key2",
                     next: NextRules(default: "__complete__")
                 )
             ]
@@ -128,7 +126,7 @@ struct ConversationModelTests {
         
         // Verify answer mapping
         #expect(mappedAnswer != nil, "Should map user answer")
-        #expect(mappedAnswer?.keyPath == "test.key1", "Mapped keyPath should match")
+        #expect(mappedAnswer?.keyPath == "q1", "Mapped keyPath should match question ID")
         #expect(mappedAnswer?.valueId == "opt1", "Mapped valueId should match")
         
         // Verify next question
@@ -216,7 +214,6 @@ struct ConversationModelTests {
                     type: .single_choice,
                     options: [Option(id: "opt1", label: "Option 1")],
                     predefinedResponses: ["Option 1"],
-                    key: "test.key1",
                     next: NextRules(default: "q2_with_info")
                 ),
                 Question(
@@ -226,7 +223,6 @@ struct ConversationModelTests {
                     type: .free_text,
                     options: nil,
                     predefinedResponses: nil,
-                    key: "test.key2",
                     next: NextRules(default: nil)
                 )
             ]
@@ -313,7 +309,7 @@ struct ConversationModelTests {
         
         // Verify free text mapping
         #expect(mappedAnswer != nil, "Should map free text answer")
-        #expect(mappedAnswer?.keyPath == "test.key2", "Mapped keyPath should match")
+        #expect(mappedAnswer?.keyPath == "q2", "Mapped keyPath should match question ID")
         #expect(mappedAnswer?.valueId == "Custom free text response", "Mapped valueId should match")
     }
 }
@@ -405,14 +401,12 @@ final class MockStreamingConversationModel: ConversationModel {
         
         // Map answer
         var mapped: MappedAnswer? = nil
-        if let key = question.key {
-            if let opt = question.options?.first(where: {
-                $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
-            }) {
-                mapped = MappedAnswer(keyPath: key, valueId: opt.id)
-            } else if question.type == .free_text {
-                mapped = MappedAnswer(keyPath: key, valueId: text)
-            }
+        if let opt = question.options?.first(where: {
+            $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
+        }) {
+            mapped = MappedAnswer(keyPath: question.id, valueId: opt.id)
+        } else if question.type == .free_text {
+            mapped = MappedAnswer(keyPath: question.id, valueId: text)
         }
         
         let nextId = question.next?.default
@@ -455,14 +449,12 @@ final class MockStreamingConversationModel: ConversationModel {
         
         // Map answer
         var mapped: MappedAnswer? = nil
-        if let key = question.key {
-            if let opt = question.options?.first(where: {
-                $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
-            }) {
-                mapped = MappedAnswer(keyPath: key, valueId: opt.id)
-            } else if question.type == .free_text {
-                mapped = MappedAnswer(keyPath: key, valueId: text)
-            }
+        if let opt = question.options?.first(where: {
+            $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
+        }) {
+            mapped = MappedAnswer(keyPath: question.id, valueId: opt.id)
+        } else if question.type == .free_text {
+            mapped = MappedAnswer(keyPath: question.id, valueId: text)
         }
         
         let nextId = question.next?.default

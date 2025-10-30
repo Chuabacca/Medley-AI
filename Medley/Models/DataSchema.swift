@@ -23,7 +23,6 @@ struct Question: Codable {
     let type: QuestionType
     let options: [Option]?
     let predefinedResponses: [String]?
-    let key: String?
     let next: NextRules?
 }
 

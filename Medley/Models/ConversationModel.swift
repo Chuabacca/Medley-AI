@@ -27,7 +27,7 @@ final class FoundationModelsConversationModel: ConversationModel {
         self.schema = schema
         
         let instructions = Instructions {
-            "You are the first point of contact for users coming to Hims & Hers for their healthcare needs."
+            "You are the first point of contact for users coming to Hims for their healthcare needs."
             "You are an experienced, empathetic medical professional conducting a hair loss consultation."
             "Your role is to guide the patient through a series of questions with a warm bedside manner."
             "For each question, provide a conversational, professional prompt based on the question context."
@@ -194,18 +194,16 @@ final class FoundationModelsConversationModel: ConversationModel {
     // MARK: - Private Helpers
     
     private func mapAnswer(from text: String, for question: Question) async -> MappedAnswer? {
-        guard let key = question.key else { return nil }
-        
         // First, try exact match with option label or id
         if let option = question.options?.first(where: {
             $0.label.caseInsensitiveCompare(text).rawValue == 0 || $0.id == text
         }) {
-            return MappedAnswer(keyPath: key, valueId: option.id)
+            return MappedAnswer(keyPath: question.id, valueId: option.id)
         }
         
         // For free text questions, save the user's exact response
         if question.type == .free_text {
-            return MappedAnswer(keyPath: key, valueId: text)
+            return MappedAnswer(keyPath: question.id, valueId: text)
         }
         
         // For questions with predefined options, use LLM to categorize open-ended response
@@ -216,12 +214,12 @@ final class FoundationModelsConversationModel: ConversationModel {
                     question: question.prompt,
                     options: options
                 )
-                return MappedAnswer(keyPath: key, valueId: categorizedOption)
+                return MappedAnswer(keyPath: question.id, valueId: categorizedOption)
             } catch {
                 print("Error categorizing response: \(error)")
                 // Fallback: use first option if categorization fails
                 if let firstOption = options.first {
-                    return MappedAnswer(keyPath: key, valueId: firstOption.id)
+                    return MappedAnswer(keyPath: question.id, valueId: firstOption.id)
                 }
             }
         }
