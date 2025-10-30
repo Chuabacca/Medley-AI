@@ -115,7 +115,7 @@ final class FoundationModelsConversationModel: ConversationModel {
                 "Previous question: \(question.prompt)"
                 "Patient's answer: \(text)"
                 "Generate a warm acknowledgment of the patient's answer."
-                "Do not ask a question."
+                "Do NOT ask a question."
                 "Do not start with 'Sure!', 'Absolutely!', 'Great!', or similar phrases. Begin naturally."
             }
         } else {

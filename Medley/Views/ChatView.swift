@@ -145,10 +145,10 @@ struct ChatView: View {
         } label: {
             Text("Next")
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.brandDark)
-                .frame(maxWidth: 250)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .backgroundStyle(.black)
+                .background(Color.black)
                 .clipShape(Capsule())
         }
         .padding()
@@ -156,12 +156,15 @@ struct ChatView: View {
     
     private var inputBar: some View {
         HStack(spacing: 8) {
-            TextField("Type a message", text: $inputText)
+            TextField("Type or select an option", text: $inputText)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(.ultraThinMaterial)
                 .clipShape(Capsule())
                 .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 0)
+                .onSubmit({
+                    send(inputText)
+                })
 
             Button("Send") {
                 send(inputText)
