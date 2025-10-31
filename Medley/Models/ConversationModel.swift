@@ -226,7 +226,7 @@ final class FoundationModelsConversationModel: ConversationModel {
             optionIds
         }
         
-        var response = try await session.respond(to: prompt)
+        let response = try await session.respond(to: prompt)
         let categoryId = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Validate the category ID exists
