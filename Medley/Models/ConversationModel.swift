@@ -192,6 +192,7 @@ final class FoundationModelsConversationModel: ConversationModel {
                 let categorizedOption = try await categorizeResponse(
                     userResponse: text,
                     question: question.prompt,
+                    questionType: question.type,
                     options: options
                 )
                 return MappedAnswer(keyPath: question.id, valueId: categorizedOption)
@@ -210,25 +211,23 @@ final class FoundationModelsConversationModel: ConversationModel {
     private func categorizeResponse(
         userResponse: String,
         question: String,
+        questionType: QuestionType,
         options: [Option]
     ) async throws -> String {
+        let optionIds = options.map { $0.id }.joined(separator: ", ")
         let optionsList = options.map { "- \($0.id): \($0.label)" }.joined(separator: "\n")
         
         let prompt = Prompt {
             "Question: \(question)"
             "User's response: \(userResponse)"
-            "Available categories:"
+            "Available response options:"
             optionsList
-            "Based on the user's response, which category ID best matches? Respond with ONLY the category ID, nothing else."
+            "Based on the user's response, return \(questionType == .multiple_choice ? "one or more" : "exactly one") of the following option IDs:"
+            optionIds
         }
         
-        var responseText = ""
-        let stream = session.streamResponse(to: prompt)
-        for try await snapshot in stream {
-            responseText = snapshot.content
-        }
-        
-        let categoryId = responseText.trimmingCharacters(in: .whitespacesAndNewlines)
+        var response = try await session.respond(to: prompt)
+        let categoryId = response.content.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Validate the category ID exists
         if options.contains(where: { $0.id == categoryId }) {
