@@ -2,7 +2,18 @@
 
 Medley is a Hims-branded hair loss consultation chat demo built with the Foundation Models framework and SwiftUI to provide an on-device, interactive user experience.
 
-[![Medley app demo](https://img.youtube.com/vi/R9mtnyPthR8/0.jpg)](https://www.youtube.com/watch?v=R9mtnyPthR8)
+
+<div>
+    <a href="https://www.loom.com/share/b3b570f8d5b14f86bd162ebc71995356">
+      <p>Medley AI Demo - Watch Video</p>
+    </a>
+    <a href="https://www.loom.com/share/b3b570f8d5b14f86bd162ebc71995356">
+      <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/b3b570f8d5b14f86bd162ebc71995356-4b25aed5bd370c4c-full-play.gif">
+    </a>
+  </div>
+<br>
+
+## [Project Memo](https://www.notion.so/chuabacca/AI-Patient-Intake-Product-Development-and-Technical-Demo-293c689e4778802e9664f6ed81199f39?source=copy_link)
 
 ## Core Architecture
 
